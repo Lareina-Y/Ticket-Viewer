@@ -1,8 +1,10 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
 
 const DefaultIcon = L.icon({
   iconUrl: markerIcon,
@@ -11,18 +13,20 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export default function TicketMap({ tickets }: any) {
-  const center: [number, number] = [43.7, -79.4];
+export default function TicketMap({ tickets = [] }: any) {
 
   return (
-    <MapContainer center={center} zoom={9} style={{ height: 500, width: '100%' }}>
+    <MapContainer zoom={9} style={{ height: 500, width: '100%' }}>
       
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <FitBounds tickets={tickets} />
 
-      {tickets.map((t: any) => (
+      {tickets
+        .filter((t: any) => t.latitude && t.longitude)
+        .map((t: any) => (
         <Marker
           key={t.id}
-          position={[t.latitude, t.longitude]}
+          position={[Number(t.latitude), Number(t.longitude)]}
         >
           <Popup>
             <div>
@@ -36,4 +40,28 @@ export default function TicketMap({ tickets }: any) {
 
     </MapContainer>
   );
+}
+
+// Utility component to fit map bounds to ticket locations
+export function FitBounds({ tickets = [] }: any) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!tickets || tickets.length === 0) return;
+
+    const validPoints = tickets
+      .filter((t: any) => t.latitude && t.longitude)
+      .map((t: any) => [Number(t.latitude), Number(t.longitude)] as [number, number]);
+
+    if (validPoints.length === 0) return;
+
+    const bounds = L.latLngBounds(validPoints);
+
+    map.fitBounds(bounds, {
+      padding: [50, 50], // White space at the edges
+      maxZoom: 13,       // Prevent excessive zooming
+    });
+  }, [tickets, map]);
+
+  return null;
 }
