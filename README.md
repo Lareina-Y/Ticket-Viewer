@@ -5,10 +5,9 @@ A GIS-enabled ticket search application built with React, NestJS, PostgreSQL, an
 ## Tech Stack
 
 ### Frontend
-- React
-- TypeScript
+- React + TypeScript
 - Material UI
-- Axios
+- Leaflet
 
 ### Backend
 - NestJS
@@ -18,7 +17,22 @@ A GIS-enabled ticket search application built with React, NestJS, PostgreSQL, an
 - PostgreSQL
 - PostGIS
 
----
+## Features Overview
+Core:
+- Create a simple page for ticket search.
+- Add filters for status, station code, and utility type.
+- Add a Search button.
+- Call the backend endpoint using the selected filters.
+- Show total ticket count.
+- Show tickets in a table/list.
+- Show coordinates for each ticket.
+- Handle loading and error states.
+
+Bonus:
+- Show ticket markers on a Leaflet map.
+- Use current map bounds as bbox. （no automatic search triggered）
+- Add debounce when map bounds change.
+- Add pagination or limit handling.
 
 ## Run Locally
 
@@ -49,7 +63,6 @@ npm run dev
 ```
 Frontend runs on: http://localhost:5173
 
----
 ## API Endpoints
 
 ### GET /api/tickets/search
