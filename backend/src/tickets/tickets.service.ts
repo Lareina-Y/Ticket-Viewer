@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ticket } from './entities/ticket.entity';
+import { SearchTicketsDto } from './dto/search.dto';
 
 @Injectable()
 export class TicketsService {
@@ -9,13 +10,13 @@ export class TicketsService {
     @InjectRepository(Ticket)
     private repo: Repository<Ticket>,
   ) {}
-  
-  // Search tickets based on bbox, status, station code, and utility type
-  async search(query: any) {
+
+  async search(query: SearchTicketsDto) {
     const { bbox, status, stationCode, utilityType } = query;
 
-    // parse bbox
-    const [minLng, minLat, maxLng, maxLat] = bbox.split(',').map(Number);
+    const [minLng, minLat, maxLng, maxLat] = bbox
+      .split(',')
+      .map(Number);
 
     if ([minLng, minLat, maxLng, maxLat].some(isNaN)) {
       throw new BadRequestException('Invalid bbox');
@@ -23,7 +24,7 @@ export class TicketsService {
 
     const qb = this.repo
       .createQueryBuilder('t')
-      .leftJoin('station_codes', 's', 's.id = t.station_code_id')
+      .leftJoinAndSelect('t.station', 's')
       .where(
         `ST_Intersects(
           t.geom,
@@ -32,14 +33,17 @@ export class TicketsService {
         { minLng, minLat, maxLng, maxLat },
       );
 
-    // status filter
-    if (status) qb.andWhere('t.status = :status', { status });
+    if (status) {
+      qb.andWhere('t.status = :status', { status });
+    }
 
-    // stationCode filter
-    if (stationCode) qb.andWhere('s.code = :stationCode', { stationCode });
+    if (stationCode) {
+      qb.andWhere('s.code = :stationCode', { stationCode });
+    }
 
-    // utilityType filter
-    if (utilityType) qb.andWhere('s.utility_type = :utilityType', { utilityType });
+    if (utilityType) {
+      qb.andWhere('s.utility_type = :utilityType', { utilityType });
+    }
 
     const tickets = await qb.getMany();
 
@@ -51,8 +55,10 @@ export class TicketsService {
         ticketNo: t.ticket_no,
         status: t.status,
         priority: t.priority,
-        stationCode: t.station_code_id,
-        utilityType: 'UNKNOWN',
+
+        stationCode: t.station.code,
+        utilityType: t.station.utility_type,
+
         longitude: coords[0],
         latitude: coords[1],
       };
@@ -63,7 +69,7 @@ export class TicketsService {
       byStatus: result.reduce((acc, cur) => {
         acc[cur.status] = (acc[cur.status] || 0) + 1;
         return acc;
-      }, {}),
+      }, {} as Record<string, number>),
     };
 
     return { tickets: result, summary };
@@ -77,20 +83,20 @@ export class TicketsService {
 
     const stationCodes = await this.repo
       .createQueryBuilder('t')
-      .leftJoin('station_codes', 's', 's.id = t.station_code_id')
+      .leftJoin('t.station', 's')
       .select('DISTINCT s.code', 'code')
       .getRawMany();
 
     const utilityTypes = await this.repo
       .createQueryBuilder('t')
-      .leftJoin('station_codes', 's', 's.id = t.station_code_id')
+      .leftJoin('t.station', 's')
       .select('DISTINCT s.utility_type', 'utilityType')
       .getRawMany();
 
     return {
-      status: statuses.map(s => s.status),
-      stationCodes: stationCodes.map(s => s.code),
-      utilityTypes: utilityTypes.map(u => u.utilityType),
+      status: statuses.map((s) => s.status),
+      stationCodes: stationCodes.map((s) => s.code),
+      utilityTypes: utilityTypes.map((u) => u.utilityType),
     };
   }
 }
