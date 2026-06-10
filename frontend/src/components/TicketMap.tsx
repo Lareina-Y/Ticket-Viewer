@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents} from 'react-leaflet';
 import L from 'leaflet';
 
@@ -14,8 +15,14 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 export default function TicketMap({ tickets = [], onBBoxChange }: any) {
-
+  /* TODO:
+    Currently syncs map viewport (bbox) to filter state.
+    Auto-search on map move is disabled because Search button controls execution.
+    Debounce is kept for future support of map-driven search,
+    helping avoid excessive API calls and improve UX. 
+  */
   function SyncBoundsToFilter({ onChange }: any) {
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const round1 = (num: number) => Math.round(num * 10) / 10;
     useMapEvents({
       moveend: (e) => {
@@ -29,7 +36,14 @@ export default function TicketMap({ tickets = [], onBBoxChange }: any) {
           round1(b.getNorth()),
         ].join(',');
 
-        onChange(bbox);
+        // debounce
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+        }
+
+        timerRef.current = setTimeout(() => {
+          onChange(bbox);
+        }, 300);
       },
     });
 
