@@ -10,7 +10,7 @@ docker exec -it gis-postgres psql -U postgres -d gisdb
 docker compose up -d
 
 cd backend
-npm run start
+npm run start:dev
 
 cd frontend
 npm run dev
