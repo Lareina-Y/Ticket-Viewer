@@ -5,6 +5,7 @@ import { Container, Typography, CircularProgress, Alert } from '@mui/material';
 import FilterPanel from '../components/FilterPanel';
 import TicketTable from '../components/TicketTable';
 import SummaryCard from '../components/SummaryCard';
+import TicketMap from '../components/TicketMap';
 
 export default function FilterPage () {
   const [filters, setFilters] = useState({
@@ -54,6 +55,7 @@ export default function FilterPage () {
         <>
           <SummaryCard summary={data.summary} />
           <TicketTable tickets={data.tickets} />
+          <TicketMap tickets={data.tickets}/>
         </>
       )}
     </Container>
