@@ -35,7 +35,14 @@ export default function FilterPage () {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
+    <Container
+      maxWidth="lg"
+      sx={{
+        mt: 4,
+        mb: 4,
+        px: { xs: 2, sm: 3, md: 6 },
+      }}
+    >
       
       <Typography variant="h4" gutterBottom>
         GIS Ticket Viewer
