@@ -1,0 +1,51 @@
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+DROP TABLE IF EXISTS tickets;
+DROP TABLE IF EXISTS station_codes;
+
+CREATE TABLE station_codes (
+  id SERIAL PRIMARY KEY,
+  code VARCHAR(50) NOT NULL,
+  utility_type VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE tickets (
+  id SERIAL PRIMARY KEY,
+  ticket_no VARCHAR(50) NOT NULL,
+  status VARCHAR(50) NOT NULL,
+  priority VARCHAR(50) NOT NULL,
+  station_code_id INT REFERENCES station_codes(id),
+  pre_completed_at TIMESTAMP NULL,
+  office_clear_at TIMESTAMP NULL,
+  geom GEOMETRY(Point, 4326) NOT NULL
+);
+
+CREATE INDEX tickets_geom_idx ON tickets USING GIST (geom);
+
+INSERT INTO station_codes (code, utility_type)
+VALUES
+('HLTNW02', 'WATER'),
+('HLTST01', 'SANITARY'),
+('HLDT01', 'TELECOM'),
+('HLDN-T01', 'SANITARY_TELECOM'),
+('HLTRD01', 'ROAD'),
+('HLTGS01', 'GAS');
+
+INSERT INTO tickets (
+  ticket_no,
+  status,
+  priority,
+  station_code_id,
+  pre_completed_at,
+  office_clear_at,
+  geom
+)
+VALUES
+('20261318930', 'PRE_COMPLETED', 'STANDARD', 1, '2026-04-10 10:30:00', NULL, ST_SetSRID(ST_MakePoint(-79.8711, 43.2557), 4326)),
+('2026133783', 'OFFICE_CLEAR', 'EMERGENCY', 2, NULL, '2026-04-12 14:15:00', ST_SetSRID(ST_MakePoint(-79.8844, 43.2387), 4326)),
+('2026136548', 'PRE_COMPLETED', 'STANDARD', 3, '2026-04-18 09:00:00', NULL, ST_SetSRID(ST_MakePoint(-79.7624, 43.3135), 4326)),
+('2026124098', 'COMPLETED', 'STANDARD', 4, '2026-03-28 11:00:00', '2026-04-03 13:20:00', ST_SetSRID(ST_MakePoint(-79.9205, 43.2756), 4326)),
+('2026125725', 'PRE_COMPLETED', 'STANDARD', 5, '2026-04-22 08:45:00', NULL, ST_SetSRID(ST_MakePoint(-79.8012, 43.2912), 4326)),
+('2026120668', 'OFFICE_CLEAR', 'STANDARD', 6, NULL, '2026-04-19 16:10:00', ST_SetSRID(ST_MakePoint(-79.9441, 43.2201), 4326)),
+('2026114064', 'COMPLETED', 'EMERGENCY', 1, '2026-04-01 07:30:00', '2026-04-01 12:00:00', ST_SetSRID(ST_MakePoint(-79.7342, 43.3462), 4326)),
+('20261310134', 'PRE_COMPLETED', 'STANDARD', 2, '2026-04-25 11:20:00', NULL, ST_SetSRID(ST_MakePoint(-80.0412, 43.1902), 4326));
