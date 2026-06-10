@@ -3,12 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ticket } from './entities/ticket.entity';
 import { SearchTicketsDto } from './dto/search.dto';
+import { StationCode } from './entities/station-code.entity';
 
 @Injectable()
 export class TicketsService {
   constructor(
     @InjectRepository(Ticket)
-    private repo: Repository<Ticket>,
+    private ticketsRepo: Repository<Ticket>,
+    @InjectRepository(StationCode)
+    private stationRepo: Repository<StationCode>,
   ) {}
 
   async search(query: SearchTicketsDto) {
@@ -22,7 +25,7 @@ export class TicketsService {
       throw new BadRequestException('Invalid bbox');
     }
 
-    const qb = this.repo
+    const qb = this.ticketsRepo
       .createQueryBuilder('t')
       .leftJoinAndSelect('t.station', 's')
       .where(
@@ -76,27 +79,19 @@ export class TicketsService {
   }
 
   async getMeta() {
-    const statuses = await this.repo
+    const statuses = await this.ticketsRepo
       .createQueryBuilder('t')
       .select('DISTINCT t.status', 'status')
       .getRawMany();
 
-    const stationCodes = await this.repo
-      .createQueryBuilder('t')
-      .leftJoin('t.station', 's')
-      .select('DISTINCT s.code', 'code')
-      .getRawMany();
-
-    const utilityTypes = await this.repo
-      .createQueryBuilder('t')
-      .leftJoin('t.station', 's')
-      .select('DISTINCT s.utility_type', 'utilityType')
-      .getRawMany();
+    const stations = await this.stationRepo.find({
+      select: ['code', 'utility_type'],
+    });
 
     return {
       status: statuses.map((s) => s.status),
-      stationCodes: stationCodes.map((s) => s.code),
-      utilityTypes: utilityTypes.map((u) => u.utilityType),
+      stationCodes: stations.map(s => s.code),
+      utilityTypes: [...new Set(stations.map(s => s.utility_type))],
     };
   }
 }
