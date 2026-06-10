@@ -57,12 +57,12 @@ export default function FilterPage () {
       {loading && <CircularProgress sx={{ mt: 2 }} />}
 
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-
+      <TicketMap tickets={data?.tickets || []}/>
       {data && (
         <>
           <SummaryCard summary={data.summary} />
           <TicketTable tickets={data.tickets} />
-          <TicketMap tickets={data.tickets}/>
+          {/* <TicketMap tickets={data.tickets}/> */}
         </>
       )}
     </Container>
