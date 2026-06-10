@@ -6,3 +6,8 @@ export const searchTickets = async (params: any) => {
   });
   return res.data;
 };
+
+export const getTicketMeta = async () => {
+  const res = await axios.get('http://localhost:3000/api/tickets/meta');
+  return res.data;
+};

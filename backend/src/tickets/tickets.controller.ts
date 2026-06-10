@@ -9,4 +9,9 @@ export class TicketsController {
   search(@Query() query: any) {
     return this.service.search(query);
   }
+
+  @Get('meta')
+  getMeta() {
+    return this.service.getMeta();
+}
 }

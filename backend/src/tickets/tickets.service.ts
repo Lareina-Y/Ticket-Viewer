@@ -9,7 +9,8 @@ export class TicketsService {
     @InjectRepository(Ticket)
     private repo: Repository<Ticket>,
   ) {}
-
+  
+  // Search tickets based on bbox, status, station code, and utility type
   async search(query: any) {
     const { bbox, status, stationCode, utilityType } = query;
 
@@ -66,5 +67,30 @@ export class TicketsService {
     };
 
     return { tickets: result, summary };
+  }
+
+  async getMeta() {
+    const statuses = await this.repo
+      .createQueryBuilder('t')
+      .select('DISTINCT t.status', 'status')
+      .getRawMany();
+
+    const stationCodes = await this.repo
+      .createQueryBuilder('t')
+      .leftJoin('station_codes', 's', 's.id = t.station_code_id')
+      .select('DISTINCT s.code', 'code')
+      .getRawMany();
+
+    const utilityTypes = await this.repo
+      .createQueryBuilder('t')
+      .leftJoin('station_codes', 's', 's.id = t.station_code_id')
+      .select('DISTINCT s.utility_type', 'utilityType')
+      .getRawMany();
+
+    return {
+      status: statuses.map(s => s.status),
+      stationCodes: stationCodes.map(s => s.code),
+      utilityTypes: utilityTypes.map(u => u.utilityType),
+    };
   }
 }
