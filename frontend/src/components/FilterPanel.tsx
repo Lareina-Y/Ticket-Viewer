@@ -17,6 +17,40 @@ export default function FilterPanel({ filters, setFilters, onSearch }: any) {
   });
 
   const [loadingMeta, setLoadingMeta] = useState(false);
+  const [bboxError, setBboxError] = useState<string | null>(null);
+
+  function validateBBox(value: string): string | null {
+    if (!value || value.trim() === '') {
+      return 'BBox is required';
+    }
+
+    const parts = value.split(',').map(v => v.trim());
+
+    if (parts.length !== 4) {
+      return 'BBox must be: minLng,minLat,maxLng,maxLat';
+    }
+
+    const nums = parts.map(Number);
+
+    if (nums.some(v => Number.isNaN(v))) {
+      return 'BBox must contain valid numbers';
+    }
+
+    const [minLng, minLat, maxLng, maxLat] = nums;
+
+    if (minLng >= maxLng || minLat >= maxLat) {
+      return 'Invalid bbox range';
+    }
+
+    if (
+      minLng < -180 || maxLng > 180 ||
+      minLat < -90 || maxLat > 90
+    ) {
+      return 'BBox out of bounds';
+    }
+
+    return null;
+  }
 
   useEffect(() => {
     const fetchMeta = async () => {
@@ -41,9 +75,13 @@ export default function FilterPanel({ filters, setFilters, onSearch }: any) {
       <TextField
         label="BBox"
         value={filters.bbox}
-        onChange={(e) =>
-          setFilters({ ...filters, bbox: e.target.value })
-        }
+        error={!!bboxError}
+        helperText={bboxError || ' '}
+        onChange={(e) => {
+          const value = e.target.value;
+          setFilters({ ...filters, bbox: value });
+          setBboxError(validateBBox(value));
+        }}
       />
 
       {/* STATUS (DYNAMIC) */}
@@ -107,7 +145,8 @@ export default function FilterPanel({ filters, setFilters, onSearch }: any) {
       <Button
         variant="contained"
         onClick={onSearch}
-        disabled={loadingMeta}
+        disabled={loadingMeta || !!bboxError}
+        sx={{ height: 58 }}
       >
         Search
       </Button>

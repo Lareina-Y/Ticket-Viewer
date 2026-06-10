@@ -27,8 +27,8 @@ export default function FilterPage () {
       const res = await searchTickets(filters);
       setData(res);
 
-    } catch (e) {
-      setError('Failed to fetch tickets');
+    } catch (e: any) {
+      setError(e?.message || 'Failed to fetch tickets');
     } finally {
       setLoading(false);
     }
