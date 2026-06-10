@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents} from 'react-leaflet';
 import L from 'leaflet';
 
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -14,13 +13,38 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export default function TicketMap({ tickets = [] }: any) {
+export default function TicketMap({ tickets = [], onBBoxChange }: any) {
+
+  function SyncBoundsToFilter({ onChange }: any) {
+    const round1 = (num: number) => Math.round(num * 10) / 10;
+    useMapEvents({
+      moveend: (e) => {
+        const map = e.target;
+        const b = map.getBounds();
+
+        const bbox = [
+          round1(b.getWest()),
+          round1(b.getSouth()),
+          round1(b.getEast()),
+          round1(b.getNorth()),
+        ].join(',');
+
+        onChange(bbox);
+      },
+    });
+
+    return null;
+  }
 
   return (
-    <MapContainer zoom={9} style={{ height: 500, width: '100%' }}>
+    <MapContainer 
+      zoom={9}
+      center={DEFAULT_CENTER}
+      style={{ height: 500, width: '100%' }}
+    >
       
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <FitBounds tickets={tickets} />
+      <SyncBoundsToFilter onChange={onBBoxChange} />
 
       {tickets
         .filter((t: any) => t.latitude && t.longitude)
@@ -42,29 +66,4 @@ export default function TicketMap({ tickets = [] }: any) {
 
     </MapContainer>
   );
-}
-
-// Utility component to fit map bounds to ticket locations
-export function FitBounds({ tickets = [] }: any): null {
-  const map = useMap();
-
-  useEffect(() => {
-    const validPoints = tickets
-      .filter((t: any) => t.latitude && t.longitude)
-      .map((t: any) => [Number(t.latitude), Number(t.longitude)] as [number, number]);
-
-    if (validPoints.length === 0) {
-      map.setView(DEFAULT_CENTER, 9);
-      return;
-    }
-
-    const bounds = L.latLngBounds(validPoints);
-
-    map.fitBounds(bounds, {
-      padding: [50, 50], // White space at the edges
-      maxZoom: 13,       // Prevent excessive zooming
-    });
-  }, [tickets, map]);
-
-  return null;
 }

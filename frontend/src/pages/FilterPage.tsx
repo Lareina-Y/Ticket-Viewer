@@ -54,15 +54,18 @@ export default function FilterPage () {
         onSearch={handleSearch}
       />
 
-      {loading && <CircularProgress sx={{ mt: 2 }} />}
-
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-      <TicketMap tickets={data?.tickets || []}/>
+      <TicketMap
+        tickets={data?.tickets || []}
+        onBBoxChange={(bbox: string) =>
+          setFilters((prev) => ({ ...prev, bbox }))
+        }
+      />
+      {loading && <CircularProgress sx={{ mt: 2 }} />}
       {data && (
         <>
           <SummaryCard summary={data.summary} />
           <TicketTable tickets={data.tickets} />
-          {/* <TicketMap tickets={data.tickets}/> */}
         </>
       )}
     </Container>
