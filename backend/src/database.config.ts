@@ -9,4 +9,5 @@ export const dbConfig: TypeOrmModuleOptions = {
   database: 'gisdb',
   autoLoadEntities: true,
   synchronize: false,
+  logging: true,
 };

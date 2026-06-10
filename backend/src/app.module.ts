@@ -6,7 +6,8 @@ import { dbConfig } from './database.config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(dbConfig),],
+    TypeOrmModule.forRoot(dbConfig),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
