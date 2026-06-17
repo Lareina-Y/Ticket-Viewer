@@ -4,15 +4,15 @@ import { SearchTicketsDto } from './dto/search.dto';
 
 @Controller('api/tickets')
 export class TicketsController {
-  constructor(private service: TicketsService) {}
+  constructor(private ticketsService: TicketsService) {}
 
   @Get('search')
   search(@Query() query: SearchTicketsDto) {
-    return this.service.search(query);
+    return this.ticketsService.search(query);
   }
 
   @Get('meta')
   getMeta() {
-    return this.service.getMeta();
+    return this.ticketsService.getMeta();
   }
 }
