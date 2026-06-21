@@ -5,6 +5,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
+import type { Point } from 'geojson';
 import { StationCode } from './station-code.entity';
 
 @Entity('tickets')
@@ -39,5 +40,5 @@ export class Ticket {
     spatialFeatureType: 'Point',
     srid: 4326,
   })
-  geom: any;
+  geom!: Point;
 }

@@ -61,7 +61,7 @@ export default function TicketMap({ tickets = [], onBBoxChange }: any) {
       <SyncBoundsToFilter onChange={onBBoxChange} />
 
       {tickets
-        .filter((t: any) => t.latitude && t.longitude)
+        .filter((t: any) => t.latitude !== null && t.longitude !== null)
         .map((t: any) => (
         <Marker
           key={t.id}

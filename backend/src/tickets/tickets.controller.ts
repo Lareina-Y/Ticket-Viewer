@@ -4,7 +4,7 @@ import { SearchTicketsDto } from './dto/search.dto';
 
 @Controller('api/tickets')
 export class TicketsController {
-  constructor(private ticketsService: TicketsService) {}
+  constructor(private readonly ticketsService: TicketsService) {}
 
   @Get('search')
   search(@Query() query: SearchTicketsDto) {

@@ -51,7 +51,7 @@ export class TicketsService {
     const tickets = await qb.getMany();
 
     const result = tickets.map((t) => {
-      const coords = (t.geom as any).coordinates;
+      const coords = t.geom.coordinates;
 
       return {
         id: t.id,
@@ -91,7 +91,7 @@ export class TicketsService {
     return {
       status: statuses.map((s) => s.status),
       stationCodes: stations.map(s => s.code),
-      utilityTypes: [...new Set(stations.map(s => s.utility_type))],
+      utilityTypes: stations.map(s => s.utility_type),
     };
   }
 }
