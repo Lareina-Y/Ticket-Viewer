@@ -41,6 +41,7 @@ export default function TicketMap({ tickets = [], onBBoxChange }: any) {
           clearTimeout(timerRef.current);
         }
 
+        // Execution only occurs if no new moveend occurs within 300ms.
         timerRef.current = setTimeout(() => {
           onChange(bbox);
         }, 300);
