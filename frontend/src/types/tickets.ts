@@ -14,6 +14,7 @@ export type Ticket = {
   utilityType: string;
   longitude: number | null;
   latitude: number | null;
+  insideServiceArea: Boolean;
   nearestEmergencyTicketNo: string | null,
   distanceToNearestEmergencyMeters: number | null,
   riskLevel: string;

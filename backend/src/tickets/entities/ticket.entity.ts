@@ -44,6 +44,5 @@ export class Ticket {
     srid: 4326,
   })
   geom!: Point;
-  
-  insideServiceArea!: Boolean;
+
 }

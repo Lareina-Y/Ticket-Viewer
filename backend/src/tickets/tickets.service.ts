@@ -172,7 +172,7 @@ export class TicketsService {
 
           longitude: coords[0],
           latitude: coords[1],
-          insideServiceArea: t.insideServiceArea,
+          insideServiceArea: insideServiceArea,
           nearestEmergencyTicketNo: emergency?.ticketNo || null,
           distanceToNearestEmergencyMeters: distance,
           riskLevel: riskLevel,

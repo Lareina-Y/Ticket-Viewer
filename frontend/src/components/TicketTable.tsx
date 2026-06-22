@@ -18,6 +18,7 @@ export default function TicketTable({ tickets }: TicketTableProps) {
     utilityType: t.utilityType,
     longitude: t.longitude,
     latitude: t.latitude,
+    insideServiceArea: t.insideServiceArea ? 'Yes' : 'No',
     riskLevel: t.riskLevel,
   }));
 
@@ -29,6 +30,7 @@ export default function TicketTable({ tickets }: TicketTableProps) {
     { field: 'utilityType', headerName: 'Utility Type', width: 100 },
     { field: 'longitude', headerName: 'Lng', width: 80 },
     { field: 'latitude', headerName: 'Lat', width: 80 },
+    { field: 'insideServiceArea', headerName: 'In Service Area', width: 120 },
     { field: 'riskLevel', headerName: 'Risk Level', width: 90 },
   ];
 

@@ -25,7 +25,6 @@ export default function FilterPage () {
       setLoading(true);
       setError('');
 
-      console.log(filters)
       const res = await conflictTickets(filters);
       setData(res);
 

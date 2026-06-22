@@ -78,13 +78,16 @@ export default function TicketMap({ tickets = [], onBBoxChange }: TicketMapProps
         <Marker
           key={t.id}
           position={[Number(t.latitude), Number(t.longitude)]}
+          // style={{ color: t.riskLevel === 'HIGH' ? 'red' : t.riskLevel === 'MEDIUM' ? 'orange' : 'green' }}
         >
           <Popup>
             <div>
               <strong>{t.ticketNo}</strong><br />
               Status: {t.status}<br />
               Station: {t.stationCode}<br />
-              Utility Type: {t.utilityType}
+              Utility Type: {t.utilityType}<br />
+              InsideServiceArea: {t.insideServiceArea ? 'Yes' : 'No'}<br />
+              Risk Level: {t.riskLevel}<br />
             </div>
           </Popup>
         </Marker>
