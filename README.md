@@ -23,7 +23,7 @@ Core:
 - Add filters for status, station code, and utility type.
 - Add a Search button.
 - Call the backend endpoint using the selected filters.
-- Show total ticket count.
+- Show total ticket count in the summary card.
 - Show tickets in a table/list.
 - Show coordinates for each ticket.
 - Handle loading and error states.
@@ -44,7 +44,8 @@ docker-compose up -d
 
 ### 2. Initialize Database
 ```bash
-docker exec -i gis-postgres psql -U postgres -d gisdb < database/init.sql
+docker exec -i gis-postgres psql -U postgres -d gisdb < database/01_schema.sql
+docker exec -i gis-postgres psql -U postgres -d gisdb < database/02_seed.sql
 ```
 
 ### 3. Start Backend
