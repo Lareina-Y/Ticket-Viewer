@@ -29,11 +29,14 @@ export class Ticket {
   @JoinColumn({ name: 'station_code_id' })
   station!: StationCode;
 
-  @Column({ type: 'timestamp', nullable: true })
-  pre_completed_at!: Date;
+  // @Column({ type: 'timestamp', nullable: true })
+  // pre_completed_at!: Date;
+
+  // @Column({ type: 'timestamp', nullable: true })
+  // office_clear_at!: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  office_clear_at!: Date;
+  due_at!: Date;
 
   @Column({
     type: 'geometry',
@@ -41,4 +44,6 @@ export class Ticket {
     srid: 4326,
   })
   geom!: Point;
+  
+  insideServiceArea: any;
 }
