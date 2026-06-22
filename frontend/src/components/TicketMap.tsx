@@ -32,7 +32,7 @@ export default function TicketMap({ tickets = [], onBBoxChange }: TicketMapProps
     Debounce is kept for future support of map-driven search,
     helping avoid excessive API calls and improve UX. 
   */
-  function SyncBoundsToFilter({ onChange }: SyncBoundsToFilterProps) {
+  const SyncBoundsToFilter = ({ onChange }: SyncBoundsToFilterProps) => {
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const round1 = (num: number) => Math.round(num * 10) / 10;
     useMapEvents({
