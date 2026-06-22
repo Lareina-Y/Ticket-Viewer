@@ -45,5 +45,5 @@ export class Ticket {
   })
   geom!: Point;
   
-  insideServiceArea: any;
+  insideServiceArea!: Boolean;
 }

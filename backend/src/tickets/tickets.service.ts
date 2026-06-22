@@ -4,8 +4,14 @@ import { Repository } from 'typeorm';
 import { Ticket } from './entities/ticket.entity';
 import { SearchTicketsDto } from './dto/search.dto';
 import { StationCode } from './entities/station-code.entity';
-import { ServiceAreas } from './entities/service_areas.entity';
 import { ConflictsTicketsDto } from './dto/conflicts.dto';
+
+type RiskLevel = 'HIGH' | 'MEDIUM' | 'LOW';
+
+type EmergencyTicket = {
+  ticketNo: string;
+  distanceMeters: number | string;
+};
 
 @Injectable()
 export class TicketsService {
@@ -74,9 +80,9 @@ export class TicketsService {
     const summary = {
       total: result.length,
       byStatus: result.reduce((acc, cur) => {
-        acc[cur.status] = (acc[cur.status] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>),
+          acc[cur.status] = (acc[cur.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
     };
 
     return { tickets: result, summary };
@@ -94,32 +100,40 @@ export class TicketsService {
 
     return {
       status: statuses.map((s) => s.status),
-      stationCodes: stations.map(s => s.code),
-      utilityTypes: stations.map(s => s.utility_type),
+      stationCodes: stations.map((s) => s.code),
+      utilityTypes: [...new Set(stations.map((s) => s.utility_type))],
     };
   }
 
   async conflict(query: ConflictsTicketsDto) {
-    const { bbox, stationCode, utilityType, radiusMeters = 500 } = query;
+    const { bbox, stationCode, utilityType, radiusMeters = 250 } = query;
 
-    const [minLng, minLat, maxLng, maxLat] = bbox
-      .split(',')
-      .map(Number);
+    const [minLng, minLat, maxLng, maxLat] = this.parseBbox(bbox);
 
-    if ([minLng, minLat, maxLng, maxLat].some(isNaN)) {
-      throw new BadRequestException('Invalid bbox');
+    if (!Number.isFinite(radiusMeters) || radiusMeters <= 0) {
+      throw new BadRequestException('radiusMeters must be a positive number');
     }
 
     const qb = this.ticketsRepo
       .createQueryBuilder('t')
-      .leftJoin('station_codes', 's', 't.station_code_id = s.id')
+      .leftJoinAndSelect('t.station', 's')
       .where(
         `ST_Intersects(
           t.geom,
           ST_MakeEnvelope(:minLng, :minLat, :maxLng, :maxLat, 4326)
         )`,
         { minLng, minLat, maxLng, maxLat },
-      );
+      )
+      .addSelect(
+        `EXISTS (
+          SELECT 1
+          FROM service_areas sa
+          WHERE sa.station_code_id = s.id
+            AND ST_Covers(sa.geom, t.geom)
+        )`,
+        'insideServiceArea',
+      )
+      .orderBy('t.id', 'ASC');
 
     if (stationCode) {
       qb.andWhere('s.code = :stationCode', { stationCode });
@@ -129,71 +143,147 @@ export class TicketsService {
       qb.andWhere('s.utility_type = :utilityType', { utilityType });
     }
 
-    const tickets = await qb.addSelect(
-      'EXISTS (SELECT 1 FROM service_areas sa WHERE sa.station_code_id = s.id AND ST_Within(t.geom, sa.geom))',
-      'insideServiceArea'
-    ).getMany();
+    const { entities, raw } = await qb.getRawAndEntities();
 
-    const result = await Promise.all(tickets.map(async (t) => {
-      const coords = t.geom.coordinates;
+    const tickets = await Promise.all(
+      entities.map(async (t, index) => {
+        const coords = t.geom.coordinates;
+        const insideServiceArea = Boolean(raw[index].insideServiceArea);
+        const emergency = await this.emergecyCheck(t, radiusMeters);
+        const distance = emergency
+          ? Math.round(Number(emergency.distanceMeters))
+          : null;
+        const riskLevel = this.getRiskLevel({
+          priority: t.priority,
+          status: t.status,
+          dueAt: t.due_at,
+          insideServiceArea,
+          hasNearbyEmergency: Boolean(emergency),
+        });
 
-      const emergency = await this.emergecyCheck(t);
-      const distance = emergency ? emergency.distanceMeters : null;
+        return {
+          id: t.id,
+          ticketNo: t.ticket_no,
+          status: t.status,
+          priority: t.priority,
+  
+          stationCode: t.station.code,
+          utilityType: t.station.utility_type,
 
-      return {
-        id: t.id,
-        ticketNo: t.ticket_no,
-        status: t.status,
-        priority: t.priority,
+          longitude: coords[0],
+          latitude: coords[1],
+          insideServiceArea: t.insideServiceArea,
+          nearestEmergencyTicketNo: emergency?.ticketNo || null,
+          distanceToNearestEmergencyMeters: distance,
+          riskLevel: riskLevel,
+        };
+      }),
+    );
 
-        stationCode: t.station.code,
-        utilityType: t.station.utility_type,
+    const summary = tickets.reduce(
+      (acc, ticket) => {
+        acc.total += 1;
+        acc.byUtilityType[ticket.utilityType] =
+          (acc.byUtilityType[ticket.utilityType] || 0) + 1;
 
-        longitude: coords[0],
-        latitude: coords[1],
+        if (ticket.riskLevel === 'HIGH') acc.highRisk += 1;
+        if (ticket.riskLevel === 'MEDIUM') acc.mediumRisk += 1;
+        if (ticket.riskLevel === 'LOW') acc.lowRisk += 1;
+        if (!ticket.insideServiceArea) acc.outsideServiceArea += 1;
 
-        insideServiceArea: t.insideServiceArea,
-        nearestEmergencyTicketNo: emergency?.ticketNo || null,
-        distanceToNearestEmergencyMeters: distance,
-        riskLevel: "HIGH"
-      };
-    }));
-
-    const summary = {
-      total: result.length,
-      byUtilityType: result.reduce((acc, cur) => {
-        acc[cur.utilityType] = (acc[cur.utilityType] || 0) + 1;
         return acc;
-      }, {} as Record<string, number>),
-    };
+      },
+      {
+        total: 0,
+        highRisk: 0,
+        mediumRisk: 0,
+        lowRisk: 0,
+        outsideServiceArea: 0,
+        byUtilityType: {} as Record<string, number>,
+      },
+    );
 
-    return { tickets: result, summary };
+    return { tickets, summary };
   }
 
+  async emergecyCheck(ticket: Ticket, radiusMeters: number): Promise<EmergencyTicket | null> {
+    const distanceSql = `ST_Distance(
+      t.geom::geography,
+      ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
+    )`;
 
-  async emergecyCheck(ticket: Ticket) {
-    const qb = this.ticketsRepo
+    const emergencyTicket = await this.ticketsRepo
       .createQueryBuilder('t')
-      .select([
-        't.ticket_no AS ticketNo',
-        `
-        'ST_Distance(
+      .select('t.ticket_no', 'ticketNo')
+      .addSelect(distanceSql, 'distanceMeters')
+      .where('t.id <> :id', { id: ticket.id })
+      .andWhere('t.priority = :priority', { priority: 'EMERGENCY' })
+      .andWhere(
+        `ST_DWithin(
           t.geom::geography,
-          ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography
-        ) AS distanceMeters'
-        `
-      ])
-      .where("t.proiority = 'Emergency'")
-      .setParameters({
-        lng: ticket.geom.coordinates[0],
-        lat: ticket.geom.coordinates[1],
-      })
-      .orderBy('distanceMeters')
-      ;
+          ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+          :radiusMeters
+        )`,
+        {
+          lng: ticket.geom.coordinates[0],
+          lat: ticket.geom.coordinates[1],
+          radiusMeters,
+        },
+      )
+      .orderBy(distanceSql, 'ASC')
+      .limit(1)
+      .getRawOne<EmergencyTicket>();
 
-    const emergecyTicket = await qb.limit(1).getRawOne();
-
-    return emergecyTicket;
+    return emergencyTicket ?? null;
   }
 
+  private parseBbox(bbox: string): [number, number, number, number] {
+    const values = bbox.split(',').map(Number);
+
+    if (
+      values.length !== 4 ||
+      values.some((value) => !Number.isFinite(value))
+    ) {
+      throw new BadRequestException(
+        'bbox must be: minLng,minLat,maxLng,maxLat',
+      );
+    }
+
+    const [minLng, minLat, maxLng, maxLat] = values;
+
+    if (minLng >= maxLng || minLat >= maxLat) {
+      throw new BadRequestException(
+        'bbox min values must be less than max values',
+      );
+    }
+
+    if (minLng < -180 || maxLng > 180 || minLat < -90 || maxLat > 90) {
+      throw new BadRequestException('bbox coordinates are out of range');
+    }
+
+    return [minLng, minLat, maxLng, maxLat];
+  }
+
+  private getRiskLevel(ticket: {
+    priority: string;
+    status: string;
+    dueAt: Date | string | null;
+    insideServiceArea: boolean;
+    hasNearbyEmergency: boolean;
+  }): RiskLevel {
+    if (ticket.priority === 'EMERGENCY' || ticket.hasNearbyEmergency) {
+      return 'HIGH';
+    }
+
+    const overduePreCompleted =
+      ticket.status === 'PRE_COMPLETED' &&
+      ticket.dueAt !== null &&
+      new Date(ticket.dueAt).getTime() < Date.now();
+
+    if (!ticket.insideServiceArea || overduePreCompleted) {
+      return 'MEDIUM';
+    }
+
+    return 'LOW';
+  }
 }
