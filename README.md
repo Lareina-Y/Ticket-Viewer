@@ -86,7 +86,7 @@ curl "http://localhost:3000/api/tickets/search?bbox=-80,43,-79,44&status=PRE_COM
 ```
 Example Response：
 
-```bash
+```json
 {
   "tickets": [
     {
@@ -109,6 +109,47 @@ Example Response：
 }
 ```
 
+### GET /api/tickets/conflicts
+
+```bash
+curl "http://localhost:3000/api/tickets/conflicts?bbox=-80.00,43.18,-79.65,43.38&radiusMeters=250"
+```
+Example Response：
+
+```json
+{
+  "tickets": [
+    {
+      "id": 1,
+      "ticketNo": "20261318930",
+      "status": "PRE_COMPLETED",
+      "priority": "STANDARD",
+      "stationCode": "HLTNW02",
+      "utilityType": "WATER",
+      "longitude": -79.8711,
+      "latitude": 43.2557,
+      "insideServiceArea": true,
+      "nearestEmergencyTicketNo": "2026133783",
+      "distanceToNearestEmergencyMeters": 80,
+      "riskLevel": "HIGH"
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "highRisk": 3,
+    "mediumRisk": 4,
+    "lowRisk": 2,
+    "outsideServiceArea": 2,
+    "byUtilityType": {
+      "WATER": 4,
+      "GAS": 2,
+      "SANITARY": 1,
+      "TELECOM": 2
+    }
+  }
+}
+```
+
 ### GET /api/tickets/meta
 
 Returns available filter values for the frontend dropdowns.
@@ -119,7 +160,7 @@ GET "http://localhost:3000/api/tickets/meta"
 ```
 
 Example Response:
-```bash
+```json
 {
   "status": [
     "PRE_COMPLETED",
