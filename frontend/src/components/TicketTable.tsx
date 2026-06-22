@@ -2,9 +2,14 @@
 import { Box } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import type { GridColDef } from '@mui/x-data-grid';
+import type { Ticket } from '../types/tickets';
 
-export default function TicketTable({ tickets }: any) {
-  const rows = tickets.map((t: any) => ({
+interface TicketTableProps {
+  tickets: Ticket[];
+};
+
+export default function TicketTable({ tickets }: TicketTableProps) {
+  const rows = tickets.map((t) => ({
     id: t.id,
     ticketNo: t.ticketNo,
     status: t.status,

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import {
   TextField,
   Button,
@@ -7,10 +8,17 @@ import {
 } from '@mui/material';
 
 import { getTicketMeta } from '../api/ticketApi';
+import type { TicketFilters, TicketMeta } from '../types/tickets';
 
-export default function FilterPanel({ filters, setFilters, onSearch }: any) {
+interface FilterPanelProps {
+  filters: TicketFilters;
+  setFilters: Dispatch<SetStateAction<TicketFilters>>;
+  onSearch: () => void;
+};
 
-  const [meta, setMeta] = useState<any>({
+export default function FilterPanel({ filters, setFilters, onSearch }: FilterPanelProps) {
+
+  const [meta, setMeta] = useState<TicketMeta>({
     status: [],
     stationCodes: [],
     utilityTypes: [],

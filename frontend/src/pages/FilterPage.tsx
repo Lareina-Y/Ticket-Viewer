@@ -6,16 +6,17 @@ import FilterPanel from '../components/FilterPanel';
 import TicketTable from '../components/TicketTable';
 import SummaryCard from '../components/SummaryCard';
 import TicketMap from '../components/TicketMap';
+import type { TicketFilters, TicketSearchResponse } from '../types/tickets';
 
 export default function FilterPage () {
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<TicketFilters>({
     bbox: '-80,43,-79,44',
     status: '',
     stationCode: '',
     utilityType: '',
   });
 
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<TicketSearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -27,8 +28,8 @@ export default function FilterPage () {
       const res = await searchTickets(filters);
       setData(res);
 
-    } catch (e: any) {
-      setError(e?.message || 'Failed to fetch tickets');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to fetch tickets');
     } finally {
       setLoading(false);
     }

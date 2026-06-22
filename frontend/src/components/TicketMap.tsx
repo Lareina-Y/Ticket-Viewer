@@ -1,6 +1,8 @@
 import { useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents} from 'react-leaflet';
 import L from 'leaflet';
+import type { LeafletEvent, Map as LeafletMap } from 'leaflet';
+import type { Ticket } from '../types/tickets';
 
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -14,19 +16,28 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export default function TicketMap({ tickets = [], onBBoxChange }: any) {
+interface TicketMapProps {
+  tickets?: Ticket[];
+  onBBoxChange: (bbox: string) => void;
+};
+
+interface SyncBoundsToFilterProps {
+  onChange: (bbox: string) => void;
+};
+
+export default function TicketMap({ tickets = [], onBBoxChange }: TicketMapProps) {
   /* TODO:
     Currently syncs map viewport (bbox) to filter state.
     Auto-search on map move is disabled because Search button controls execution.
     Debounce is kept for future support of map-driven search,
     helping avoid excessive API calls and improve UX. 
   */
-  function SyncBoundsToFilter({ onChange }: any) {
+  function SyncBoundsToFilter({ onChange }: SyncBoundsToFilterProps) {
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const round1 = (num: number) => Math.round(num * 10) / 10;
     useMapEvents({
-      moveend: (e) => {
-        const map = e.target;
+      moveend: (e: LeafletEvent) => {
+        const map = e.target as LeafletMap;
         const b = map.getBounds();
 
         const bbox = [
@@ -62,8 +73,8 @@ export default function TicketMap({ tickets = [], onBBoxChange }: any) {
       <SyncBoundsToFilter onChange={onBBoxChange} />
 
       {tickets
-        .filter((t: any) => t.latitude !== null && t.longitude !== null)
-        .map((t: any) => (
+        .filter((t) => t.latitude !== null && t.longitude !== null)
+        .map((t) => (
         <Marker
           key={t.id}
           position={[Number(t.latitude), Number(t.longitude)]}

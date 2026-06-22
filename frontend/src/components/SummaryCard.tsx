@@ -1,6 +1,11 @@
 import { Card, CardContent, Typography } from '@mui/material';
+import type { TicketSummary } from '../types/tickets';
 
-export default function SummaryCard({ summary }: any) {
+interface SummaryCardProps {
+  summary: TicketSummary;
+};
+
+export default function SummaryCard({ summary }: SummaryCardProps) {
   return (
     <Card sx={{ mt: 2 }}>
       <CardContent>
