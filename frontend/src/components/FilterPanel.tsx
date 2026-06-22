@@ -92,25 +92,6 @@ export default function FilterPanel({ filters, setFilters, onSearch }: FilterPan
         }}
       />
 
-      {/* STATUS (DYNAMIC) */}
-      <TextField
-        select
-        label="Status"
-        value={filters.status}
-        onChange={(e) =>
-          setFilters({ ...filters, status: e.target.value })
-        }
-        sx={{ minWidth: 160 }}
-      >
-        <MenuItem value="">All</MenuItem>
-
-        {meta.status.map((s: string) => (
-          <MenuItem key={s} value={s}>
-            {s}
-          </MenuItem>
-        ))}
-      </TextField>
-
       {/* STATION CODE (DYNAMIC) */}
       <TextField
         select
@@ -148,6 +129,18 @@ export default function FilterPanel({ filters, setFilters, onSearch }: FilterPan
           </MenuItem>
         ))}
       </TextField>
+
+      <TextField
+        label="radius"
+        value={filters.radiusMeters}
+        // error={!!radiusError}
+        // helperText={radiusError || ' '}
+        onChange={(e) => {
+          const value = Number(e.target.value);
+          setFilters({ ...filters, radiusMeters: value });
+          // setRadiusError(validateRadius(value));
+        }}
+      />
 
       {/* SEARCH */}
       <Button

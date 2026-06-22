@@ -2,11 +2,11 @@ import axios from 'axios';
 import type {
   TicketFilters,
   TicketMeta,
-  TicketSearchResponse,
+  TicketConflictResponse,
 } from '../types/tickets';
 
-export const searchTickets = async (params: TicketFilters) => {
-  const res = await axios.get<TicketSearchResponse>('http://localhost:3000/api/tickets/search', {
+export const conflictTickets = async (params: TicketFilters) => {
+  const res = await axios.get<TicketConflictResponse>('http://localhost:3000/api/tickets/conflicts', {
     params,
   });
   return res.data;

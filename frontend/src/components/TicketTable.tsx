@@ -18,16 +18,18 @@ export default function TicketTable({ tickets }: TicketTableProps) {
     utilityType: t.utilityType,
     longitude: t.longitude,
     latitude: t.latitude,
+    riskLevel: t.riskLevel,
   }));
 
   const columns: GridColDef[] = [
-    { field: 'ticketNo', headerName: 'Ticket No', width: 150 },
-    { field: 'status', headerName: 'Status', width: 130 },
-    { field: 'priority', headerName: 'Priority', width: 130 },
-    { field: 'stationCode', headerName: 'Station', width: 130 },
-    { field: 'utilityType', headerName: 'Utility', width: 130 },
-    { field: 'longitude', headerName: 'Lng', width: 120 },
-    { field: 'latitude', headerName: 'Lat', width: 120 },
+    { field: 'ticketNo', headerName: 'Ticket No', width: 110 },
+    { field: 'status', headerName: 'Status', width: 150 },
+    { field: 'priority', headerName: 'Priority', width: 100 },
+    { field: 'stationCode', headerName: 'Station Code', width: 105 },
+    { field: 'utilityType', headerName: 'Utility Type', width: 100 },
+    { field: 'longitude', headerName: 'Lng', width: 80 },
+    { field: 'latitude', headerName: 'Lat', width: 80 },
+    { field: 'riskLevel', headerName: 'Risk Level', width: 90 },
   ];
 
   return (

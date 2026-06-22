@@ -1,8 +1,8 @@
 import { Card, CardContent, Typography } from '@mui/material';
-import type { TicketSummary } from '../types/tickets';
+import type { TicketConflictSummary } from '../types/tickets';
 
 interface SummaryCardProps {
-  summary: TicketSummary;
+  summary: TicketConflictSummary;
 };
 
 export default function SummaryCard({ summary }: SummaryCardProps) {
@@ -15,7 +15,19 @@ export default function SummaryCard({ summary }: SummaryCardProps) {
         </Typography>
 
         <Typography variant="body2">
-          {JSON.stringify(summary.byStatus, null, 2)}
+          HighRisk: {summary.highRisk}
+        </Typography>
+
+        <Typography variant="body2">
+          MediumRisk: {summary.mediumRisk}
+        </Typography>
+
+        <Typography variant="body2">
+          LowRisk: {summary.lowRisk}
+        </Typography>
+
+        <Typography variant="body2">
+          {JSON.stringify(summary.byUtilityType, null, 2)}
         </Typography>
 
       </CardContent>

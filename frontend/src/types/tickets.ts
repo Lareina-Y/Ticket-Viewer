@@ -1,8 +1,8 @@
 export type TicketFilters = {
   bbox: string;
-  status: string;
   stationCode: string;
   utilityType: string;
+  radiusMeters: number;
 };
 
 export type Ticket = {
@@ -14,16 +14,23 @@ export type Ticket = {
   utilityType: string;
   longitude: number | null;
   latitude: number | null;
+  nearestEmergencyTicketNo: string | null,
+  distanceToNearestEmergencyMeters: number | null,
+  riskLevel: string;
 };
 
-export type TicketSummary = {
+export type TicketConflictSummary = {
   total: number;
-  byStatus: Record<string, number>;
+  highRisk: number;
+  mediumRisk: number;
+  lowRisk: number;
+  outsideServiceArea: number;
+  byUtilityType: Record<string, number>;
 };
 
-export type TicketSearchResponse = {
+export type TicketConflictResponse= {
   tickets: Ticket[];
-  summary: TicketSummary;
+  summary: TicketConflictSummary;
 };
 
 export type TicketMeta = {

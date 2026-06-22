@@ -1,35 +1,36 @@
 import { useState } from 'react';
-import { searchTickets } from '../api/ticketApi';
+import { conflictTickets } from '../api/ticketApi';
 import { Container, Typography, CircularProgress, Alert } from '@mui/material';
 
 import FilterPanel from '../components/FilterPanel';
 import TicketTable from '../components/TicketTable';
 import SummaryCard from '../components/SummaryCard';
 import TicketMap from '../components/TicketMap';
-import type { TicketFilters, TicketSearchResponse } from '../types/tickets';
+import type { TicketFilters, TicketConflictResponse } from '../types/tickets';
 
 export default function FilterPage () {
   const [filters, setFilters] = useState<TicketFilters>({
     bbox: '-80,43,-79,44',
-    status: '',
     stationCode: '',
     utilityType: '',
+    radiusMeters: 250,
   });
 
-  const [data, setData] = useState<TicketSearchResponse | null>(null);
+  const [data, setData] = useState<TicketConflictResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSearch = async () => {
+  const handleConflicts = async () => {
     try {
       setLoading(true);
       setError('');
 
-      const res = await searchTickets(filters);
+      console.log(filters)
+      const res = await conflictTickets(filters);
       setData(res);
 
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to fetch tickets');
+      setError(e instanceof Error ? e.message : 'Failed to conflict tickets');
     } finally {
       setLoading(false);
     }
@@ -52,7 +53,7 @@ export default function FilterPage () {
       <FilterPanel
         filters={filters}
         setFilters={setFilters}
-        onSearch={handleSearch}
+        onSearch={handleConflicts}
       />
 
       {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
